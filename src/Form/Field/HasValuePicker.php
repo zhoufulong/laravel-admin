@@ -3,8 +3,11 @@
 namespace Encore\Admin\Form\Field;
 
 use Encore\Admin\Admin;
-use Illuminate\Support\Arr;
+use Encore\Admin\Form\Field;
 
+/**
+ * @mixin Field
+ */
 trait HasValuePicker
 {
     /**
@@ -13,13 +16,9 @@ trait HasValuePicker
     protected $picker;
 
     /**
-     * @var string
-     */
-    protected $btn = '';
-
-    /**
      * @param string $picker
      * @param string $column
+     *
      * @return $this
      */
     public function pick($picker, $column = '')
@@ -32,30 +31,31 @@ trait HasValuePicker
     /**
      * @param string $picker
      * @param string $column
-     * @param string $delimiter
+     * @param string $separator
      */
-    public function pickMultiple($picker, $column = '', $delimiter = ',')
+    public function pickMany($picker, $column = '', $separator = ';')
     {
-        $this->picker = new ValuePicker($picker, $column, true, $delimiter);
+        $this->picker = new ValuePicker($picker, $column, true, $separator);
 
         return $this;
     }
 
     /**
-     * @return void
+     * @param \Closure|null $callback
+     *
+     * @return $this
      */
-    protected function mountPicker()
+    protected function mountPicker(\Closure $callback = null)
     {
-        if ($this->picker) {
-            $this->picker->mount($this);
-            $this->addVariables(['btn' => $this->btn]);
-        }
+        $this->picker && $this->picker->mount($this, $callback);
+
+        return $this;
     }
 
     /**
      * @return string
      */
-    protected function getRules()
+    public function getRules()
     {
         $rules = parent::getRules();
 
@@ -69,30 +69,18 @@ trait HasValuePicker
      */
     protected function renderFilePicker()
     {
-        $this->view = 'admin::form.filepicker';
-
-        $this->picker->mount($this);
-
-        $this->attribute('type', 'text')
+        $this->mountPicker()
+            ->setView('admin::form.filepicker')
+            ->attribute('type', 'text')
             ->attribute('id', $this->id)
             ->attribute('name', $this->elementName ?: $this->formatName($this->column))
             ->attribute('value', old($this->elementName ?: $this->column, $this->value()))
             ->attribute('class', 'form-control '.$this->getElementClassString())
-            ->attribute('placeholder', $this->getPlaceholder());
+            ->attribute('placeholder', $this->getPlaceholder())
+            ->addVariables([
+                'preview' => $this->picker->getPreview(get_called_class()),
+            ]);
 
-        $this->addVariables([
-            'preview' => $this->picker->preview(get_called_class()),
-            'btn'     => $this->btn
-        ]);
-
-        return parent::render();
-    }
-
-    /**
-     * @param string $wrap
-     */
-    public function addPickBtn($btn)
-    {
-        $this->btn = $btn;
+        return Admin::component('admin::form.filepicker', $this->variables());
     }
 }

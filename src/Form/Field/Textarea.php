@@ -48,20 +48,22 @@ class Textarea extends Field
             $this->value = json_encode($this->value, JSON_PRETTY_PRINT);
         }
 
-        $this->mountPicker($this);
+        $this->mountPicker(function ($btn) {
+            $this->addPickBtn($btn);
+        });
 
-        return parent::render()->with([
+        return parent::fieldRender([
             'append' => $this->append,
-            'rows'   => $this->rows
+            'rows'   => $this->rows,
         ]);
     }
 
     /**
      * @param string $wrap
      */
-    public function addPickBtn($btn)
+    protected function addPickBtn($btn)
     {
-        $style = <<<STYLE
+        $style = <<<'STYLE'
 .textarea-picker {
     padding: 5px;
     border-bottom: 1px solid #d2d6de;
@@ -85,6 +87,7 @@ STYLE;
     {$btn}
 </div>
 HTML;
+
         return $this;
     }
 }

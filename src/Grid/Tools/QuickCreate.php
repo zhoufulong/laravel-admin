@@ -231,11 +231,11 @@ class QuickCreate implements Renderable
 
     protected function script()
     {
-        $url = request()->url();
+        $url = $this->parent->resource();
 
         $script = <<<SCRIPT
 
-(function () {
+;(function () {
 
     $('.quick-create .create').click(function () {
         $('.quick-create .create-form').show();
